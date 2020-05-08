@@ -17,7 +17,7 @@ use SplFileObject;
  */
 class NativeRarWriter extends AbstractWriter
 {
-    public const VALIDATOR = NativeRarValidator::class;
+    public const VALIDATOR_CLASS = NativeRarValidator::class;
 
     /**
      * @var bool

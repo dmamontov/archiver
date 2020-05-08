@@ -7,9 +7,10 @@ use Archiver\Collection\DirectoryCollection;
 use Archiver\Collection\EmptyDirectoryCollection;
 use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
+use Archiver\Collection\OptionsCollection;
 use Archiver\Collection\PatternCollection;
 use Archiver\Exception\WriterException;
-use Archiver\Options;
+use Archiver\Helper\StringHelper;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -18,8 +19,6 @@ use Symfony\Component\Finder\Finder;
  */
 abstract class AbstractWriter
 {
-    public const VALIDATOR = '';
-
     /**
      * @var array
      */
@@ -36,9 +35,9 @@ abstract class AbstractWriter
     protected string $fileName;
 
     /**
-     * @var Options
+     * @var OptionsCollection
      */
-    protected Options $options;
+    protected OptionsCollection $options;
 
     /**
      * @var bool
@@ -50,7 +49,7 @@ abstract class AbstractWriter
         $this->fs = new Filesystem();
     }
 
-    public function write(string $fileName, array $collections, Options $options): void
+    public function write(string $fileName, array $collections, OptionsCollection $options): void
     {
         $this->validate($options);
 
@@ -58,6 +57,10 @@ abstract class AbstractWriter
 
         if ($this->fs->exists($fileName)) {
             if ($this->options->getForce()) {
+                trigger_error(
+                    sprintf('Archive %s will be overwritten.', StringHelper::toBaseName($fileName))
+                );
+
                 $this->fs->remove($fileName);
             } else {
                 throw new WriterException('File already exists.');
@@ -177,9 +180,13 @@ abstract class AbstractWriter
 
     abstract protected function writeEmptyDirectory(EmptyDirectoryCollection $collection): void;
 
-    private function validate(Options $options): void
+    private function validate(OptionsCollection $options): void
     {
-        $validator = static::VALIDATOR;
+        if (!defined('static::VALIDATOR_CLASS')) {
+            return;
+        }
+
+        $validator = static::VALIDATOR_CLASS;
 
         if (!class_exists($validator)) {
             throw new WriterException('Writer validator not found.');

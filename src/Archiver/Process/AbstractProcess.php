@@ -12,8 +12,6 @@ abstract class AbstractProcess
     protected const BINARY_WRITER = 1;
     protected const BINARY_EXTRACTOR = 2;
 
-    protected const BINARY_EXEC = [];
-
     /**
      * @var array
      */
@@ -24,6 +22,10 @@ abstract class AbstractProcess
      */
     public function __construct()
     {
+        if (!defined('static::BINARY_EXEC')) {
+            throw new ProcessException('The constant with the names of binary files is not defined.');
+        }
+
         $this->setBinary($this->detectBinary(static::BINARY_EXEC));
     }
 

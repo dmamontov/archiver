@@ -2,6 +2,7 @@
 
 namespace Archiver\Collection;
 
+use Archiver\Helper\StringHelper;
 use Archiver\Validator\FileSystemValidator;
 
 /**
@@ -40,7 +41,7 @@ class DirectoryCollection extends AbstractCollection
         $this->pathFrom = $pathFrom;
 
         if (empty($this->getPathTo())) {
-            $this->setPathTo(pathinfo($pathFrom, PATHINFO_BASENAME));
+            $this->setPathTo(StringHelper::toBaseName($pathFrom));
         }
 
         return $this;

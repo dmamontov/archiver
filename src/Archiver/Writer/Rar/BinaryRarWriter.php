@@ -8,6 +8,7 @@ use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
 use Archiver\Command\Rar\AddRarCommand;
 use Archiver\Command\Rar\CommentRarCommand;
+use Archiver\Helper\StringHelper;
 use Archiver\Validator\Rar\BinaryRarValidator;
 use Archiver\Writer\AbstractBinaryWriter;
 
@@ -16,7 +17,7 @@ use Archiver\Writer\AbstractBinaryWriter;
  */
 class BinaryRarWriter extends AbstractBinaryWriter
 {
-    public const VALIDATOR = BinaryRarValidator::class;
+    public const VALIDATOR_CLASS = BinaryRarValidator::class;
 
     /**
      * @return BinaryRarWriter
@@ -82,7 +83,7 @@ class BinaryRarWriter extends AbstractBinaryWriter
             return $this;
         }
 
-        if (pathinfo($pathFrom, PATHINFO_BASENAME) !== pathinfo($pathTo, PATHINFO_BASENAME)) {
+        if (StringHelper::toBaseName($pathFrom) !== StringHelper::toBaseName($pathTo)) {
             $tempPath = $this->tmpPath($pathTo);
 
             $this->fs->copy($pathFrom, $tempPath);
@@ -111,6 +112,6 @@ class BinaryRarWriter extends AbstractBinaryWriter
 
     private function tmpPath(string $path): string
     {
-        return sys_get_temp_dir().'/'.pathinfo($path, PATHINFO_BASENAME);
+        return sys_get_temp_dir().'/'.StringHelper::toBaseName($path);
     }
 }

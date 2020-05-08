@@ -2,9 +2,9 @@
 
 namespace Archiver\Validator\Rar;
 
+use Archiver\Collection\OptionsCollection;
 use Archiver\Exception\ProcessException;
 use Archiver\Exception\RarException;
-use Archiver\Options;
 use Archiver\Process\RarProcess;
 use Archiver\Validator\ValidatorInterface;
 use Tivie\OS\Detector as OsDetector;
@@ -14,7 +14,7 @@ use Tivie\OS\Detector as OsDetector;
  */
 class BinaryRarValidator implements ValidatorInterface
 {
-    public static function validateWriter(Options $options, bool $return = false): bool
+    public static function validateWriter(OptionsCollection $options, bool $return = false): bool
     {
         $result = (new OsDetector())->isUnixLike();
 

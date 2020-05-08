@@ -1,24 +1,26 @@
 <?php
 
-namespace Archiver;
+namespace Archiver\Collection;
+
+use ArrayAccess;
 
 /**
  * Class Options.
  *
- * @method Options setForce(bool $flag)
- * @method bool    getForce()
- * @method bool    isForce()
- * @method Options setPassword(string $password)
- * @method string  getPassword()
- * @method bool    isPassword()
- * @method Options setComment(string $comment)
- * @method string  getComment()
- * @method bool    isComment()
- * @method Options setCompression(int $compression)
- * @method int     getCompression()
- * @method bool    isCompression()
+ * @method OptionsCollection setForce(bool $flag)
+ * @method bool              getForce()
+ * @method bool              isForce()
+ * @method OptionsCollection setPassword(string $password)
+ * @method string            getPassword()
+ * @method bool              isPassword()
+ * @method OptionsCollection setComment(string $comment)
+ * @method string            getComment()
+ * @method bool              isComment()
+ * @method OptionsCollection setCompression(int $compression)
+ * @method int               getCompression()
+ * @method bool              isCompression()
  */
-class Options implements \ArrayAccess
+class OptionsCollection implements ArrayAccess
 {
     /**
      * @var array
@@ -34,7 +36,7 @@ class Options implements \ArrayAccess
      * @param $name
      * @param $arguments
      *
-     * @return null|bool|Options
+     * @return null|bool|OptionsCollection
      */
     public function __call($name, $arguments)
     {

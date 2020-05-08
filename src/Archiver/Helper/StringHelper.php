@@ -56,4 +56,9 @@ class StringHelper
 
         return $result;
     }
+
+    public static function toBaseName(string $path): string
+    {
+        return basename($path, PATHINFO_BASENAME);
+    }
 }

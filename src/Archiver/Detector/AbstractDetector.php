@@ -2,7 +2,7 @@
 
 namespace Archiver\Detector;
 
-use Archiver\Options;
+use Archiver\Collection\OptionsCollection;
 use Archiver\Writer\AbstractWriter;
 
 /**
@@ -10,5 +10,5 @@ use Archiver\Writer\AbstractWriter;
  */
 abstract class AbstractDetector
 {
-    abstract public function detectWriter(Options $options): AbstractWriter;
+    abstract public function detectWriter(OptionsCollection $options): AbstractWriter;
 }

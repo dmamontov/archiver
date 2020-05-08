@@ -2,9 +2,9 @@
 
 namespace Archiver\Validator\Rar;
 
+use Archiver\Collection\OptionsCollection;
+use Archiver\Enum\Compression;
 use Archiver\Exception\RarException;
-use Archiver\Options;
-use Archiver\Rar;
 use Archiver\Validator\ValidatorInterface;
 
 /**
@@ -12,9 +12,9 @@ use Archiver\Validator\ValidatorInterface;
  */
 class NativeRarValidator implements ValidatorInterface
 {
-    public static function validateWriter(Options $options, bool $return = false): bool
+    public static function validateWriter(OptionsCollection $options, bool $return = false): bool
     {
-        $result = (!$options->isCompression() || Rar::COMPRESSION_STORE === $options->getCompression())
+        $result = (!$options->isCompression() || Compression::ORIGINAL === $options->getCompression())
             && !count(array_diff($options->keys(), ['force', 'compression']))
         ;
 

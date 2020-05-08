@@ -7,10 +7,12 @@ use Archiver\Collection\DirectoryCollection;
 use Archiver\Collection\EmptyDirectoryCollection;
 use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
+use Archiver\Collection\OptionsCollection;
 use Archiver\Collection\PatternCollection;
 use Archiver\Detector\AbstractDetector;
+use Archiver\Enum\Compression;
+use Archiver\Exception\OptionException;
 use Archiver\Exception\WriterException;
-use Archiver\Options;
 use Archiver\Validator\FileSystemValidator;
 use Archiver\Writer\AbstractWriter;
 
@@ -35,16 +37,16 @@ class CreateAction
     private array $collection = [];
 
     /**
-     * @var Options
+     * @var OptionsCollection
      */
-    private Options $options;
+    private OptionsCollection $options;
 
     /**
      * CreateAction constructor.
      */
     public function __construct(AbstractDetector $detector, ?AbstractWriter $writer)
     {
-        $this->options = new Options();
+        $this->options = new OptionsCollection();
 
         $this->setDetector($detector);
 
@@ -128,6 +130,10 @@ class CreateAction
      */
     public function compress(int $compression): self
     {
+        if (!in_array($compression, Compression::LIST, true)) {
+            throw new OptionException('Invalid compression specified');
+        }
+
         $this->options->setCompression($compression);
 
         return $this;

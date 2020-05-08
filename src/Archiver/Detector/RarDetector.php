@@ -2,8 +2,8 @@
 
 namespace Archiver\Detector;
 
+use Archiver\Collection\OptionsCollection;
 use Archiver\Exception\WriterException;
-use Archiver\Options;
 use Archiver\Process\RarProcess;
 use Archiver\Validator\Rar\BinaryRarValidator;
 use Archiver\Validator\Rar\NativeRarValidator;
@@ -16,7 +16,7 @@ use Archiver\Writer\Rar\NativeRarWriter;
  */
 class RarDetector extends AbstractDetector
 {
-    public function detectWriter(Options $options): AbstractWriter
+    public function detectWriter(OptionsCollection $options): AbstractWriter
     {
         if (NativeRarValidator::validateWriter($options, true)) {
             return new NativeRarWriter();
