@@ -8,6 +8,7 @@ use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
 use Archiver\Exception\RarException;
 use Archiver\Helper\StringHelper;
+use Archiver\Validator\Rar\NativeRarValidator;
 use Archiver\Writer\AbstractWriter;
 use SplFileObject;
 
@@ -16,6 +17,8 @@ use SplFileObject;
  */
 class NativeRarWriter extends AbstractWriter
 {
+    public const VALIDATOR = NativeRarValidator::class;
+
     /**
      * @var bool
      */

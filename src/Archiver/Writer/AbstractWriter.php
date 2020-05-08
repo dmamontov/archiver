@@ -18,6 +18,8 @@ use Symfony\Component\Finder\Finder;
  */
 abstract class AbstractWriter
 {
+    public const VALIDATOR = '';
+
     /**
      * @var array
      */
@@ -50,6 +52,8 @@ abstract class AbstractWriter
 
     public function write(string $fileName, array $collections, Options $options): void
     {
+        $this->validate($options);
+
         $this->options = $options;
 
         if ($this->fs->exists($fileName)) {
@@ -172,4 +176,15 @@ abstract class AbstractWriter
     abstract protected function writeFile(FileCollection $collection): void;
 
     abstract protected function writeEmptyDirectory(EmptyDirectoryCollection $collection): void;
+
+    private function validate(Options $options): void
+    {
+        $validator = static::VALIDATOR;
+
+        if (!class_exists($validator)) {
+            throw new WriterException('Writer validator not found.');
+        }
+
+        (new $validator())->validateWriter($options);
+    }
 }

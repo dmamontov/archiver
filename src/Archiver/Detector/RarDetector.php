@@ -5,7 +5,8 @@ namespace Archiver\Detector;
 use Archiver\Exception\WriterException;
 use Archiver\Options;
 use Archiver\Process\RarProcess;
-use Archiver\Rar;
+use Archiver\Validator\Rar\BinaryRarValidator;
+use Archiver\Validator\Rar\NativeRarValidator;
 use Archiver\Writer\AbstractWriter;
 use Archiver\Writer\Rar\BinaryRarWriter;
 use Archiver\Writer\Rar\NativeRarWriter;
@@ -17,21 +18,14 @@ class RarDetector extends AbstractDetector
 {
     public function detectWriter(Options $options): AbstractWriter
     {
-        if ($this->isSupportNative($options)) {
+        if (NativeRarValidator::validateWriter($options, true)) {
             return new NativeRarWriter();
         }
 
-        if ($this->os->isUnixLike()) {
+        if (BinaryRarValidator::validateWriter($options, true)) {
             return new BinaryRarWriter(new RarProcess());
         }
 
         throw new WriterException('Failed detect writer.');
-    }
-
-    public function isSupportNative(Options $options): bool
-    {
-        return (!$options->isCompression() || Rar::COMPRESSION_STORE === $options->getCompression())
-            && !count(array_diff($options->keys(), ['force', 'compression']))
-        ;
     }
 }

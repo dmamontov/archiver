@@ -8,6 +8,7 @@ use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
 use Archiver\Command\Rar\AddRarCommand;
 use Archiver\Command\Rar\CommentRarCommand;
+use Archiver\Validator\Rar\BinaryRarValidator;
 use Archiver\Writer\AbstractBinaryWriter;
 
 /**
@@ -15,6 +16,8 @@ use Archiver\Writer\AbstractBinaryWriter;
  */
 class BinaryRarWriter extends AbstractBinaryWriter
 {
+    public const VALIDATOR = BinaryRarValidator::class;
+
     /**
      * @return BinaryRarWriter
      */
