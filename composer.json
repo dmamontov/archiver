@@ -15,7 +15,11 @@
     "require": {
         "php": ">=7.4",
         "ext-mbstring": "*",
-        "symfony/process": "^5.0"
+        "symfony/process": "^5.0",
+        "symfony/filesystem": "^5.0",
+        "tivie/php-os-detector": "^1.1",
+        "symfony/validator": "^5.0",
+        "symfony/finder": "^5.0"
     },
     "support": {
         "email": "d.slonyara@gmail.com"

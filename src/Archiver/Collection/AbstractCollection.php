@@ -10,7 +10,7 @@ abstract class AbstractCollection
     /**
      * @var null|string
      */
-    protected ?string $pathTo;
+    protected string $pathTo = '';
 
     final public function getPathTo(): ?string
     {

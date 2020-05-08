@@ -5,10 +5,7 @@ WIP: Archiver
 
 ### Roadmap
 - RAR
-    - Writers
-        - ~~Native~~
-        - ~~Unix~~
-        - Windows
+    - ~~Writers~~
     - Extractors
 - ZIP
 - TAR

@@ -3,36 +3,35 @@
 namespace Archiver\Detector;
 
 use Archiver\Exception\WriterException;
+use Archiver\Options;
 use Archiver\Process\RarProcess;
+use Archiver\Rar;
 use Archiver\Writer\AbstractWriter;
-use Archiver\Writer\Rar\NativeWriter;
-use Archiver\Writer\Rar\UnixWriter;
+use Archiver\Writer\Rar\BinaryRarWriter;
+use Archiver\Writer\Rar\NativeRarWriter;
 
 /**
  * Class RarDetector.
  */
 class RarDetector extends AbstractDetector
 {
-    private const EXCLUDE_OPTIONS = [
-        'password',
-        'compress',
-    ];
-
-    public function detectWriter(array $options): AbstractWriter
+    public function detectWriter(Options $options): AbstractWriter
     {
         if ($this->isSupportNative($options)) {
-            return new NativeWriter();
+            return new NativeRarWriter();
         }
 
-        if ($this->isUnix()) {
-            return new UnixWriter(new RarProcess());
+        if ($this->os->isUnixLike()) {
+            return new BinaryRarWriter(new RarProcess());
         }
 
         throw new WriterException('Failed detect writer.');
     }
 
-    private function isSupportNative(array $options): bool
+    public function isSupportNative(Options $options): bool
     {
-        return count(self::EXCLUDE_OPTIONS) === count(array_diff(self::EXCLUDE_OPTIONS, array_keys($options)));
+        return (!$options->isCompression() || Rar::COMPRESSION_STORE === $options->getCompression())
+            && !count(array_diff($options->keys(), ['force', 'compression']))
+        ;
     }
 }

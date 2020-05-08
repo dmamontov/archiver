@@ -9,9 +9,9 @@ use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
 use Archiver\Collection\PatternCollection;
 use Archiver\Exception\WriterException;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
+use Archiver\Options;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Class AbstractWriter.
@@ -24,20 +24,37 @@ abstract class AbstractWriter
     protected array $tree = [];
 
     /**
+     * @var Filesystem
+     */
+    protected Filesystem $fs;
+
+    /**
      * @var string
      */
     protected string $fileName;
 
     /**
-     * @var array
+     * @var Options
      */
-    protected array $options = [];
+    protected Options $options;
 
-    public function write(string $fileName, array $collections, array $options = []): void
+    /**
+     * @var bool
+     */
+    protected bool $isBackSeparator = false;
+
+    public function __construct()
     {
-        if (file_exists($fileName)) {
-            if (array_key_exists('force', $options) && $options['force']) {
-                @unlink($fileName);
+        $this->fs = new Filesystem();
+    }
+
+    public function write(string $fileName, array $collections, Options $options): void
+    {
+        $this->options = $options;
+
+        if ($this->fs->exists($fileName)) {
+            if ($this->options->getForce()) {
+                $this->fs->remove($fileName);
             } else {
                 throw new WriterException('File already exists.');
             }
@@ -45,7 +62,6 @@ abstract class AbstractWriter
 
         $this
             ->setFileName($fileName)
-            ->setOptions($options)
             ->before($collections)
         ;
 
@@ -96,21 +112,6 @@ abstract class AbstractWriter
         return $this;
     }
 
-    public function getOptions(): array
-    {
-        return $this->options;
-    }
-
-    /**
-     * @return AbstractWriter
-     */
-    public function setOptions(array $options): self
-    {
-        $this->options = $options;
-
-        return $this;
-    }
-
     /**
      * @return AbstractWriter
      */
@@ -127,36 +128,41 @@ abstract class AbstractWriter
         return $this;
     }
 
-    protected function buildIterator(string $path, string $regexp = ''): iterable
-    {
-        $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
-        );
-
-        if (!empty($regexp)) {
-            $iterator = new RegexIterator($iterator, $regexp);
-        }
-
-        return $iterator;
-    }
-
     protected function writeDirectory(DirectoryCollection $collection): void
     {
-        $this->writeIterator(
-            $this->buildIterator($collection->getPathFrom()),
+        $this->writeFinder(
+            (new Finder())->in($collection->getPathFrom()),
             $collection->getPathFrom(),
-            $collection->getPathTo()
+            $collection->getPathTo(),
         );
     }
 
     protected function writePattern(PatternCollection $collection): void
     {
-        $this->writeIterator(
-            $this->buildIterator($collection->getPathFrom(), $collection->getPattern()),
+        $this->writeFinder(
+            (new Finder())->in($collection->getPathFrom())->name($collection->getPattern()),
             $collection->getPathFrom(),
-            $collection->getPathTo()
+            $collection->getPathTo(),
         );
+    }
+
+    protected function writeFinder(Finder $finder, string $pathFrom, string $pathTo): void
+    {
+        foreach ($finder as $element) {
+            if ($this->isBackSeparator) {
+                $path = str_replace(['\\', $pathFrom], ['/', $pathTo], $element);
+            } else {
+                $path = str_replace($pathFrom, $pathTo, $element);
+            }
+
+            if ($element->isDir()) {
+                $this->writeEmptyDirectory(new EmptyDirectoryCollection($path));
+
+                continue;
+            }
+
+            $this->writeFile(new FileCollection((string) $element, $path));
+        }
     }
 
     abstract protected function writeContent(ContentCollection $collection): void;
@@ -166,6 +172,4 @@ abstract class AbstractWriter
     abstract protected function writeFile(FileCollection $collection): void;
 
     abstract protected function writeEmptyDirectory(EmptyDirectoryCollection $collection): void;
-
-    abstract protected function writeIterator(iterable $iterator, string $pathFrom, string $pathTo): void;
 }

@@ -10,7 +10,8 @@ use Archiver\Collection\FileCollection;
 use Archiver\Collection\PatternCollection;
 use Archiver\Detector\AbstractDetector;
 use Archiver\Exception\WriterException;
-use Archiver\Validator;
+use Archiver\Options;
+use Archiver\Validator\FileSystemValidator;
 use Archiver\Writer\AbstractWriter;
 
 /**
@@ -22,22 +23,34 @@ class CreateAction
      * @var AbstractDetector
      */
     protected AbstractDetector $detector;
+
+    /**
+     * @var AbstractWriter
+     */
+    protected AbstractWriter $writer;
+
     /**
      * @var array
      */
     private array $collection = [];
 
     /**
-     * @var array
+     * @var Options
      */
-    private array $options = [];
+    private Options $options;
 
     /**
      * CreateAction constructor.
      */
-    public function __construct(AbstractDetector $detector)
+    public function __construct(AbstractDetector $detector, ?AbstractWriter $writer)
     {
+        $this->options = new Options();
+
         $this->setDetector($detector);
+
+        if (null !== $writer) {
+            $this->setWriter($writer);
+        }
     }
 
     /**
@@ -105,7 +118,7 @@ class CreateAction
      */
     public function encrypt(string $password): self
     {
-        $this->options['password'] = trim($password);
+        $this->options->setPassword(trim($password));
 
         return $this;
     }
@@ -115,7 +128,7 @@ class CreateAction
      */
     public function compress(int $compression): self
     {
-        $this->options['compression'] = $compression;
+        $this->options->setCompression($compression);
 
         return $this;
     }
@@ -125,7 +138,7 @@ class CreateAction
      */
     public function comment(string $comment): self
     {
-        $this->options['comment'] = trim($comment);
+        $this->options->setComment(trim($comment));
 
         return $this;
     }
@@ -135,14 +148,14 @@ class CreateAction
      */
     public function force(): self
     {
-        $this->options['force'] = true;
+        $this->options->setForce(true);
 
         return $this;
     }
 
     public function write(string $fileName): void
     {
-        Validator::fs(dirname($fileName), Validator::FS_TYPE_DIRECTORY, true);
+        FileSystemValidator::isWrite(dirname($fileName), FileSystemValidator::TYPE_DIRECTORY);
 
         if (null === $this->getWriter()) {
             throw new WriterException('Writer cannot be empty.');
@@ -153,12 +166,22 @@ class CreateAction
 
     public function getWriter(): AbstractWriter
     {
-        return $this->detector->detectWriter($this->options);
+        return $this->writer ?? $this->detector->detectWriter($this->options);
     }
 
-    public function setDetector(AbstractDetector $detector): CreateAction
+    private function setDetector(AbstractDetector $detector): CreateAction
     {
         $this->detector = $detector;
+
+        return $this;
+    }
+
+    /**
+     * @return CreateAction
+     */
+    private function setWriter(AbstractWriter $writer): self
+    {
+        $this->writer = $writer;
 
         return $this;
     }

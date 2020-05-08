@@ -2,6 +2,7 @@
 
 namespace Archiver\Process;
 
+use Archiver\Command\AbstractCommand;
 use Archiver\Exception\ProcessException;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process as SymfonyProcess;
@@ -79,11 +80,11 @@ abstract class AbstractProcess
         return $detected;
     }
 
-    abstract public function add(string $fileName, string $pathFrom, string $pathTo, array $options = []): void;
+    abstract public function run(AbstractCommand $command): void;
 
-    protected function run(array $command): void
+    protected function exec(AbstractCommand $command): void
     {
-        $process = new SymfonyProcess($command);
+        $process = new SymfonyProcess($command->toArray());
 
         $process->run();
 

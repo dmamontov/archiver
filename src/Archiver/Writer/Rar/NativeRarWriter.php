@@ -7,23 +7,25 @@ use Archiver\Collection\EmptyDirectoryCollection;
 use Archiver\Collection\EmptyFileCollection;
 use Archiver\Collection\FileCollection;
 use Archiver\Exception\RarException;
+use Archiver\Helper\StringHelper;
 use Archiver\Writer\AbstractWriter;
 use SplFileObject;
 
-class NativeWriter extends AbstractWriter
+/**
+ * Class StoreRarWriter.
+ */
+class NativeRarWriter extends AbstractWriter
 {
     /**
-     * @var SplFileObject
+     * @var bool
      */
-    private SplFileObject $file;
+    protected bool $isBackSeparator = true;
 
     /**
-     * @return NativeWriter
+     * @return NativeRarWriter
      */
     protected function before(array $collections): self
     {
-        $this->file = new SplFileObject($this->getFileName(), 'w+b');
-
         $this
             ->writeHeader(0x72, 0x1a21)
             ->writeHeader(0x73, 0x0000, [[0, 2], [0, 4]])
@@ -40,7 +42,7 @@ class NativeWriter extends AbstractWriter
             $this->writeEmptyDirectory(new EmptyDirectoryCollection(dirname($pathTo)));
         }
 
-        $content = $collection->getContent();
+        $content = StringHelper::toAscii($collection->getContent());
         $pathTo = str_replace('/', '\\', $pathTo);
 
         $this->writeHeader(
@@ -52,7 +54,7 @@ class NativeWriter extends AbstractWriter
                 [0, 1],
                 [crc32($content), 4],
                 [$this->getDateTime(), 4],
-                [20, 1],
+                [50, 1],
                 [0x30, 1],
                 [mb_strlen($pathTo), 2],
                 [0x20, 4],
@@ -60,7 +62,7 @@ class NativeWriter extends AbstractWriter
             ]
         );
 
-        $this->file->fwrite($content);
+        $this->fs->appendToFile($this->getFileName(), $content);
     }
 
     protected function writeEmptyFile(EmptyFileCollection $collection): void
@@ -106,7 +108,7 @@ class NativeWriter extends AbstractWriter
                     [0, 1],
                     [0, 4],
                     [$this->getDateTime(), 4],
-                    [20, 1],
+                    [50, 1],
                     [0x30, 1],
                     [mb_strlen($newPath), 2],
                     [0x10, 4],
@@ -118,23 +120,8 @@ class NativeWriter extends AbstractWriter
         }
     }
 
-    protected function writeIterator(iterable $iterator, string $pathFrom, string $pathTo): void
-    {
-        foreach ($iterator as $element) {
-            $path = str_replace(['\\', $pathFrom], ['/', $pathTo], $element);
-
-            if ($element->isDir()) {
-                $this->writeEmptyDirectory(new EmptyDirectoryCollection($path));
-
-                continue;
-            }
-
-            $this->writeFile(new FileCollection((string) $element, $path));
-        }
-    }
-
     /**
-     * @return NativeWriter
+     * @return NativeRarWriter
      */
     private function writeHeader(int $type, int $flag, array $data = []): self
     {
@@ -168,9 +155,10 @@ class NativeWriter extends AbstractWriter
             ;
         }
 
-        $header = (0x72 === $type ? 'Ra' : $this->getCRC($header)).$header;
-
-        $this->file->fwrite($header);
+        $this->fs->appendToFile(
+            $this->getFileName(),
+            (0x72 === $type ? 'Ra' : $this->getCRC($header)).$header
+        );
 
         return $this;
     }
@@ -178,7 +166,7 @@ class NativeWriter extends AbstractWriter
     private function getBytes(string $data, int $byte = 0, int $count = 0): string
     {
         if (0 < $count && $byte) {
-            return hexdec(bin2hex($this->strRev(mb_substr($data, $byte, $count))));
+            return hexdec(bin2hex(StringHelper::strRev(mb_substr($data, $byte, $count))));
         }
 
         if (!is_numeric($data)) {
@@ -232,15 +220,5 @@ class NativeWriter extends AbstractWriter
             | ($dateTime['mon'] << 21)
             | (($dateTime['year'] - 1980) << 25)
         ;
-    }
-
-    private function strRev(string $string): string
-    {
-        $result = '';
-        for ($i = mb_strlen($string); $i >= 0; --$i) {
-            $result .= mb_substr($string, $i, 1);
-        }
-
-        return $result;
     }
 }

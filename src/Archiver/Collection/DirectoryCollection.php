@@ -2,7 +2,7 @@
 
 namespace Archiver\Collection;
 
-use Archiver\Validator;
+use Archiver\Validator\FileSystemValidator;
 
 /**
  * Class DirectoryCollection.
@@ -20,8 +20,8 @@ class DirectoryCollection extends AbstractCollection
     final public function __construct(string $pathFrom, ?string $pathTo = null)
     {
         $this
-            ->setPathFrom($pathFrom)
             ->setPathTo($pathTo)
+            ->setPathFrom($pathFrom)
         ;
     }
 
@@ -35,12 +35,12 @@ class DirectoryCollection extends AbstractCollection
      */
     public function setPathFrom(string $pathFrom): self
     {
-        Validator::fs($pathFrom, Validator::FS_TYPE_DIRECTORY);
+        FileSystemValidator::isRead($pathFrom, FileSystemValidator::TYPE_DIRECTORY);
 
         $this->pathFrom = $pathFrom;
 
-        if (null === $this->getPathTo()) {
-            $this->setPathTo($pathFrom);
+        if (empty($this->getPathTo())) {
+            $this->setPathTo(pathinfo($pathFrom, PATHINFO_BASENAME));
         }
 
         return $this;

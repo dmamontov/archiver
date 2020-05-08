@@ -19,6 +19,8 @@ abstract class AbstractBinaryWriter extends AbstractWriter
      */
     public function __construct(AbstractProcess $process)
     {
+        parent::__construct();
+
         $this->setProcess($process);
     }
 
